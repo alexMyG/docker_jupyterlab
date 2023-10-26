@@ -1,0 +1,39 @@
+version: '3'
+
+networks:
+  docker_net0:
+      driver: bridge
+      
+services:
+  jupyterlab:
+      user: "${UID}:${GID}"
+      build: 
+          context: ./jupyterlab_gpu
+          args:
+            - UID=${UID}
+            - GID=${GID}
+            - USER=${USER}
+      deploy:
+          resources:
+            reservations:
+              devices:
+                - capabilities: 
+                    - gpu
+      container_name: ${JUPYTERLAB_CONTAINER_NAME}
+      networks:
+          - docker_net0
+      environment: 
+          - JUPYTER_ENABLE_LAB=yes
+          - GRANT_SUDO=yes
+          - NB_UID=${UID}
+          - NB_GID=${GID}
+          - UID=${UID}
+          - GID=${GID}
+          - JUPYTER_TOKEN=${JUPYTER_PASSWORD}
+      volumes:
+          - "${PWD}:/home/${USER}/work"
+      env_file:
+          - .env
+      ports:
+          - "${JUPYTERLAB_PORT}:8888"
+      restart: always
